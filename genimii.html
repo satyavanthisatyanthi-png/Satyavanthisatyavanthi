@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniAI Studio - Next-Gen AI Workbench</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090d16',
+                        panelBg: '#111827',
+                        cardBg: '#1f293d',
+                        neonCyan: '#00f3ff',
+                        neonPurple: '#a855f7',
+                        neonPink: '#ec4899',
+                        borderGlow: 'rgba(0, 243, 255, 0.2)'
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 15px rgba(0, 243, 255, 0.3)',
+                        'neon-purple': '0 0 15px rgba(168, 85, 247, 0.3)',
+                        'neon-pink': '0 0 15px rgba(236, 72, 153, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #060911;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-code { font-family: 'Fira Code', monospace; }
+
+        /* Glowing Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f3ff; }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-card {
+            background: rgba(31, 41, 61, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+
+        /* Waveform Animation for Voice Simulation */
+        @keyframes soundWave {
+            0%, 100% { height: 6px; }
+            50% { height: 28px; }
+        }
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(180deg, #00f3ff, #a855f7);
+            border-radius: 2px;
+            animation: soundWave 1.2s infinite ease-in-out;
+        }
+        .wave-bar:nth-child(1) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.15s; }
+
+        /* Typing cursor */
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s step-start infinite;
+            color: #00f3ff;
+            font-weight: bold;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden bg-[#060911] text-gray-100">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="w-full md:w-64 bg-[#0a0e1a] border-r border-gray-800 flex flex-col justify-between shrink-0 transition-all duration-300 z-20">
+        <!-- Logo & Header -->
+        <div>
+            <div class="p-5 flex items-center justify-between border-b border-gray-800/80">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-neon-cyan">
+                        <i class="fa-solid font-orbitron text-lg text-white">⚡</i>
+                    </div>
+                    <div>
+                        <h1 class="font-orbitron font-bold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">OMNI<span class="text-white">AI</span></h1>
+                        <span class="text-[10px] tracking-widest uppercase text-cyan-400 font-mono">Studio v3.5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-3 space-y-1">
+                <button onclick="switchTab('chat')" id="tab-btn-chat" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-cyan-400 bg-cyan-950/40 border border-cyan-500/30">
+                    <i class="fa-solid fa-message-bot text-lg w-5 text-center"></i>
+                    <span>AI Assistant & Chat</span>
+                </button>
+                <button onclick="switchTab('image')" id="tab-btn-image" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition-all">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg w-5 text-center"></i>
+                    <span>Image Prompt Studio</span>
+                </button>
+                <button onclick="switchTab('code')" id="tab-btn-code" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition-all">
+                    <i class="fa-solid fa-code text-lg w-5 text-center"></i>
+                    <span>Code Lab & Refactoring</span>
+                </button>
+                <button onclick="switchTab('audio')" id="tab-btn-audio" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition-all">
+                    <i class="fa-solid fa-microphone-lines text-lg w-5 text-center"></i>
+                    <span>Voice Prompt & TTS</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- History & Quick Actions -->
+        <div class="p-3 border-t border-gray-800/80 space-y-3">
+            <div class="flex items-center justify-between px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <span>Recent History</span>
+                <button onclick="clearHistory()" class="hover:text-red-400 transition" title="Clear History"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <div id="history-list" class="max-h-36 overflow-y-auto space-y-1 text-xs text-gray-400">
+                <div class="p-2 rounded hover:bg-gray-800/60 cursor-pointer truncate" onclick="loadHistoryPrompt('Explain Quantum Computing with code')">Explain Quantum Computing</div>
+                <div class="p-2 rounded hover:bg-gray-800/60 cursor-pointer truncate" onclick="loadHistoryPrompt('Cyberpunk city with neon reflections')">Cyberpunk city concept</div>
+                <div class="p-2 rounded hover:bg-gray-800/60 cursor-pointer truncate" onclick="loadHistoryPrompt('Optimize React custom hook logic')">Optimize React custom hook</div>
+            </div>
+
+            <!-- Model Info Footer -->
+            <div class="p-3 rounded-xl glass-card flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-gray-300 font-mono">Gemini 3 Flash</span>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 text-[10px] font-semibold">Active</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- TOP TOOLBAR -->
+        <header class="h-16 border-b border-gray-800 bg-[#0c101d]/80 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10">
+            <div class="flex items-center space-x-4">
+                <h2 id="current-tab-title" class="font-orbitron font-semibold text-lg text-white tracking-wide">AI Assistant & Chat</h2>
+                <span id="status-badge" class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-950 text-cyan-300 border border-cyan-800">
+                    <i class="fa-solid fa-bolt text-cyan-400 mr-1.5 text-[10px]"></i> Ready
+                </span>
+            </div>
+
+            <!-- Global Controls & Settings Toggle -->
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSettingsModal()" class="px-3 py-1.5 rounded-lg glass-card hover:bg-gray-800 text-xs text-gray-300 flex items-center space-x-2 transition border border-gray-700">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i>
+                    <span class="hidden md:inline">Parameters</span>
+                </button>
+                <div class="h-5 w-px bg-gray-800"></div>
+                <div class="flex items-center space-x-1 bg-gray-900 p-1 rounded-lg border border-gray-800">
+                    <button class="px-2.5 py-1 rounded text-xs text-cyan-400 bg-gray-800 font-mono font-medium">Flash</button>
+                    <button class="px-2.5 py-1 rounded text-xs text-gray-400 hover:text-gray-200 font-mono">Pro</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW PANELS -->
+        <div class="flex-1 overflow-hidden relative p-4 md:p-6">
+            
+            <!-- 1. AI CHATBOT TAB -->
+            <section id="view-chat" class="tab-view flex flex-col h-full max-w-5xl mx-auto space-y-4">
+                <!-- Chat Messages Container -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto space-y-4 pr-2">
+                    <!-- Welcome Box -->
+                    <div class="glass-card p-6 rounded-2xl border border-gray-800 text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto text-xl">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <h3 class="font-orbitron text-lg font-bold text-gray-100">Welcome to OmniAI Studio</h3>
+                        <p class="text-sm text-gray-400 max-w-md mx-auto">Ask questions, analyze complex data, generate creative content, or explore ideas with Gemini AI intelligence.</p>
+                        
+                        <!-- Quick Prompts Suggestions -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-left">
+                            <button onclick="setPromptText('Explain deep learning transformers in simple terms with an example.')" class="p-3 rounded-xl bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800 text-xs text-gray-300 transition">
+                                <span class="font-semibold text-cyan-400 block mb-1">💡 Explain AI</span>
+                                Transformer architectures simple guide
+                            </button>
+                            <button onclick="setPromptText('Draft a comprehensive launch strategy for a SaaS GenAI product.')" class="p-3 rounded-xl bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800 text-xs text-gray-300 transition">
+                                <span class="font-semibold text-purple-400 block mb-1">🚀 SaaS Strategy</span>
+                                Go-to-market GenAI product plan
+                            </button>
+                            <button onclick="setPromptText('Write a futuristic sci-fi flash story about cybernetic engineers.')" class="p-3 rounded-xl bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800 text-xs text-gray-300 transition">
+                                <span class="font-semibold text-pink-400 block mb-1">✍️ Creative Fiction</span>
+                                Sci-Fi story of cybernetics
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Box -->
+                <div class="relative shrink-0 glass-panel rounded-2xl p-2 border border-gray-800">
+                    <textarea id="chat-input" rows="2" placeholder="Ask anything... (Press Enter to send, Shift+Enter for newline)" class="w-full bg-transparent text-sm text-gray-100 placeholder-gray-500 p-3 focus:outline-none resize-none font-sans"></textarea>
+                    
+                    <div class="flex items-center justify-between px-3 py-1 border-t border-gray-800/60 pt-2">
+                        <div class="flex items-center space-x-2 text-xs text-gray-400">
+                            <button onclick="toggleGrounding()" id="btn-grounding" class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:text-cyan-400 flex items-center space-x-1 transition">
+                                <i class="fa-solid fa-globe"></i>
+                                <span>Search Grounding</span>
+                            </button>
+                        </div>
+                        <button onclick="sendChatMessage()" id="btn-send-chat" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs flex items-center space-x-2 transition shadow-neon-cyan">
+                            <span>Generate</span>
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- 2. IMAGE PROMPT STUDIO TAB -->
+            <section id="view-image" class="tab-view hidden flex flex-col md:flex-row h-full gap-6 max-w-6xl mx-auto overflow-y-auto">
+                <!-- Controls Panel -->
+                <div class="w-full md:w-1/2 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="glass-card p-5 rounded-2xl space-y-3">
+                            <label class="text-xs font-semibold uppercase tracking-wider text-cyan-400 block">Prompt Description</label>
+                            <textarea id="image-prompt" rows="4" class="w-full bg-gray-900/80 border border-gray-800 rounded-xl p-3 text-sm text-gray-100 focus:border-cyan-500 focus:outline-none" placeholder="Describe the image you want to generate (e.g. A futuristic cyberpunk neon cat wearing glowing visor standing on a high-tech balcony)..."></textarea>
+                            
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <button onclick="enhanceImagePrompt()" class="px-3 py-1.5 rounded-lg bg-purple-950/60 text-purple-300 border border-purple-800 text-xs hover:bg-purple-900 transition flex items-center space-x-1">
+                                    <i class="fa-solid fa-wand-magic"></i>
+                                    <span>AI Enhance Prompt</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Style Presets & Aspect Ratios -->
+                        <div class="glass-card p-5 rounded-2xl space-y-4">
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">Aspect Ratio</label>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button onclick="setAspectRatio('1:1')" class="ratio-btn px-3 py-2 rounded-xl border border-cyan-500/50 bg-cyan-950/30 text-cyan-300 text-xs font-mono text-center">1:1 Square</button>
+                                    <button onclick="setAspectRatio('16:9')" class="ratio-btn px-3 py-2 rounded-xl border border-gray-800 bg-gray-900 text-gray-400 text-xs font-mono text-center hover:bg-gray-800">16:9 Wide</button>
+                                    <button onclick="setAspectRatio('9:16')" class="ratio-btn px-3 py-2 rounded-xl border border-gray-800 bg-gray-900 text-gray-400 text-xs font-mono text-center hover:bg-gray-800">9:16 Story</button>
+                                    <button onclick="setAspectRatio('4:3')" class="ratio-btn px-3 py-2 rounded-xl border border-gray-800 bg-gray-900 text-gray-400 text-xs font-mono text-center hover:bg-gray-800">4:3 Photo</button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">Artistic Style Preset</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button onclick="setStylePreset('Cyberpunk Cinematic')" class="style-btn p-2 rounded-xl border border-gray-800 bg-gray-900 text-xs text-gray-300 hover:border-purple-500">🌌 Cyberpunk</button>
+                                    <button onclick="setStylePreset('3D Photorealistic Render')" class="style-btn p-2 rounded-xl border border-gray-800 bg-gray-900 text-xs text-gray-300 hover:border-purple-500">💎 3D Octane</button>
+                                    <button onclick="setStylePreset('Anime Digital Concept Art')" class="style-btn p-2 rounded-xl border border-gray-800 bg-gray-900 text-xs text-gray-300 hover:border-purple-500">🎨 Anime Concept</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="generateImage()" id="btn-generate-image" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-neon-purple">
+                        <i class="fa-solid fa-palette"></i>
+                        <span>Synthesize Image with Gemini</span>
+                    </button>
+                </div>
+
+                <!-- Image Output Canvas View -->
+                <div class="w-full md:w-1/2 glass-card rounded-2xl border border-gray-800 flex flex-col items-center justify-center p-4 relative min-h-[350px]">
+                    <div id="image-loading" class="hidden flex-col items-center space-y-3 text-cyan-400">
+                        <div class="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p class="text-xs font-mono animate-pulse">Rendering canvas via Gemini 3.1 Flash Image...</p>
+                    </div>
+
+                    <div id="image-placeholder" class="text-center space-y-2 text-gray-500">
+                        <i class="fa-regular fa-image text-5xl mb-2 text-gray-600"></i>
+                        <p class="text-sm">Generated artwork will render here</p>
+                        <span class="text-xs text-gray-600 block">Powered by Gemini Image API</span>
+                    </div>
+
+                    <img id="image-result" class="hidden max-h-full max-w-full rounded-xl object-contain shadow-2xl border border-gray-700" alt="Generated Output">
+
+                    <div id="image-actions" class="hidden absolute bottom-4 right-4 flex space-x-2">
+                        <a id="btn-download-img" download="genai-art.png" class="p-2.5 rounded-xl bg-gray-900/90 hover:bg-gray-800 text-cyan-400 border border-gray-700 transition" title="Download Image">
+                            <i class="fa-solid fa-download"></i>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- 3. CODE ASSISTANT TAB -->
+            <section id="view-code" class="tab-view hidden flex flex-col h-full space-y-4 max-w-6xl mx-auto">
+                <div class="flex items-center justify-between glass-card px-4 py-2 rounded-xl">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-400 font-mono">Language:</span>
+                        <select id="code-lang" class="bg-gray-900 text-xs text-cyan-400 border border-gray-800 rounded px-2 py-1 font-mono">
+                            <option value="javascript">JavaScript / React</option>
+                            <option value="python">Python</option>
+                            <option value="html">HTML/CSS</option>
+                            <option value="typescript">TypeScript</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <button onclick="refactorCode('Optimize performance & add types')" class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-xs text-cyan-300">⚡ Refactor</button>
+                        <button onclick="refactorCode('Find bugs and security vulnerabilities')" class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-xs text-purple-300">🐞 Audit Bugs</button>
+                        <button onclick="refactorCode('Add inline documentation comments')" class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-xs text-emerald-300">📝 Add Docs</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden">
+                    <!-- Input Code -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-gray-800">
+                        <div class="px-4 py-2 border-b border-gray-800 text-xs font-mono text-gray-400 flex justify-between items-center bg-gray-950/40">
+                            <span>// Input Code Snippet</span>
+                            <button onclick="document.getElementById('code-input').value='';" class="text-gray-500 hover:text-gray-300"><i class="fa-solid fa-eraser"></i> Clear</button>
+                        </div>
+                        <textarea id="code-input" class="flex-1 w-full bg-gray-950/70 p-4 font-code text-xs text-gray-200 focus:outline-none resize-none" placeholder="Paste your code here for AI analysis or refactoring..."></textarea>
+                    </div>
+
+                    <!-- AI Code Output -->
+                    <div class="glass-card rounded-2xl flex flex-col overflow-hidden border border-gray-800 relative">
+                        <div class="px-4 py-2 border-b border-gray-800 text-xs font-mono text-cyan-400 flex justify-between items-center bg-gray-950/40">
+                            <span>// Refactored / Generated Code</span>
+                            <button onclick="copyToClipboard('code-output')" class="text-gray-400 hover:text-cyan-400"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </div>
+                        <pre id="code-output" class="flex-1 p-4 font-code text-xs text-emerald-400 bg-[#070b14] overflow-y-auto whitespace-pre-wrap"><code>// AI Output will display here...</code></pre>
+                    </div>
+                </div>
+
+                <button onclick="processCodeAction()" class="py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-semibold tracking-wide uppercase transition shadow-neon-cyan">
+                    Execute Code Intelligence
+                </button>
+            </section>
+
+
+            <!-- 4. VOICE PROMPT SIMULATOR TAB -->
+            <section id="view-audio" class="tab-view hidden flex flex-col h-full max-w-4xl mx-auto space-y-6 justify-center">
+                <div class="glass-card p-8 rounded-3xl border border-gray-800 text-center space-y-6">
+                    <div class="space-y-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-mono bg-purple-950 text-purple-300 border border-purple-800">TTS & Audio Simulation</span>
+                        <h3 class="font-orbitron text-2xl font-bold text-white">Voice Prompt Engine</h3>
+                        <p class="text-sm text-gray-400 max-w-md mx-auto">Convert prompt text into realistic AI audio synthesis with real-time waveform visualization.</p>
+                    </div>
+
+                    <!-- Voice Voice Config -->
+                    <div class="flex justify-center space-x-4 max-w-xs mx-auto">
+                        <select id="voice-name" class="bg-gray-900 text-xs text-cyan-400 border border-gray-800 rounded-xl px-3 py-2 w-full font-mono">
+                            <option value="Zephyr">Voice: Zephyr (Bright)</option>
+                            <option value="Puck">Voice: Puck (Upbeat)</option>
+                            <option value="Kore">Voice: Kore (Firm)</option>
+                            <option value="Fenrir">Voice: Fenrir (Excitable)</option>
+                        </select>
+                    </div>
+
+                    <!-- Text Area for Speech -->
+                    <div class="glass-panel p-4 rounded-2xl border border-gray-800">
+                        <textarea id="tts-input" rows="3" class="w-full bg-transparent text-sm text-gray-200 placeholder-gray-500 focus:outline-none resize-none" placeholder="Enter text to speak out loud... (e.g. Welcome aboard system commander. All neural modules are online.)">Welcome commander. All neural sub-routines are operating at 100 percent efficiency.</textarea>
+                    </div>
+
+                    <!-- Waveform Display -->
+                    <div class="h-16 flex items-center justify-center space-x-2 bg-gray-950/60 rounded-2xl border border-gray-800 p-2">
+                        <div id="waveform" class="hidden flex items-center space-x-1.5">
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                            <div class="wave-bar"></div>
+                        </div>
+                        <span id="audio-status" class="text-xs font-mono text-gray-500">Audio synthesis idle</span>
+                    </div>
+
+                    <div class="flex justify-center space-x-3">
+                        <button onclick="synthesizeSpeech()" id="btn-play-audio" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white font-medium text-xs flex items-center space-x-2 shadow-neon-cyan hover:opacity-90 transition">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Generate & Play Audio</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- PARAMETERS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md p-6 rounded-3xl border border-gray-800 space-y-5">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                <h3 class="font-orbitron font-bold text-white text-base">Hyperparameters</h3>
+                <button onclick="toggleSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Temperature Slider -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-gray-300">Temperature</span>
+                    <span id="val-temp" class="text-cyan-400">0.7</span>
+                </div>
+                <input type="range" min="0" max="1" step="0.05" value="0.7" id="param-temp" oninput="document.getElementById('val-temp').innerText=this.value" class="w-full accent-cyan-400 bg-gray-800 rounded-lg">
+                <p class="text-[10px] text-gray-500">Controls creativity: lower values are more deterministic, higher values more creative.</p>
+            </div>
+
+            <!-- Top P Slider -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-gray-300">Top-P</span>
+                    <span id="val-topp" class="text-purple-400">0.95</span>
+                </div>
+                <input type="range" min="0" max="1" step="0.05" value="0.95" id="param-topp" oninput="document.getElementById('val-topp').innerText=this.value" class="w-full accent-purple-400 bg-gray-800 rounded-lg">
+            </div>
+
+            <!-- Max Output Tokens -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                    <span class="text-gray-300">Max Tokens</span>
+                    <span id="val-tokens" class="text-pink-400">2048</span>
+                </div>
+                <input type="range" min="256" max="4096" step="256" value="2048" id="param-tokens" oninput="document.getElementById('val-tokens').innerText=this.value" class="w-full accent-pink-400 bg-gray-800 rounded-lg">
+            </div>
+
+            <button onclick="toggleSettingsModal()" class="w-full py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-200 transition">Save & Apply</button>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let currentTab = 'chat';
+        let isGroundingEnabled = false;
+        let selectedAspectRatio = '1:1';
+        let selectedStylePreset = '';
+
+        // Gemini API Config (Uses system proxy / runtime environment key)
+        const API_KEY = "";
+        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
+        const GEMINI_IMAGE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${API_KEY}`;
+        const GEMINI_TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+        // Switch Tabs Functionality
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-cyan-400', 'bg-cyan-950/40', 'border', 'border-cyan-500/30');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeView = document.getElementById(`view-${tab}`);
+            const activeBtn = document.getElementById(`tab-btn-${tab}`);
+            
+            if(activeView) activeView.classList.remove('hidden');
+            if(activeBtn) {
+                activeBtn.classList.add('text-cyan-400', 'bg-cyan-950/40', 'border', 'border-cyan-500/30');
+                activeBtn.classList.remove('text-gray-400');
+            }
+
+            const titles = {
+                chat: 'AI Assistant & Chat',
+                image: 'Image Prompt Studio',
+                code: 'Code Lab & Refactoring',
+                audio: 'Voice Prompt & Speech Simulation'
+            };
+            document.getElementById('current-tab-title').innerText = titles[tab];
+        }
+
+        // Modal Controls
+        function toggleSettingsModal() {
+            document.getElementById('settings-modal').classList.toggle('hidden');
+        }
+
+        function toggleGrounding() {
+            isGroundingEnabled = !isGroundingEnabled;
+            const btn = document.getElementById('btn-grounding');
+            if (isGroundingEnabled) {
+                btn.classList.add('bg-cyan-950', 'text-cyan-400', 'border', 'border-cyan-500/40');
+            } else {
+                btn.classList.remove('bg-cyan-950', 'text-cyan-400', 'border', 'border-cyan-500/40');
+            }
+        }
+
+        // Helper: Exponential Backoff Fetch
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                return await res.json();
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(r => setTimeout(r, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                throw err;
+            }
+        }
+
+        // 1. AI CHAT LOGIC
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Append User Message
+            appendMessage('user', text);
+            input.value = '';
+
+            // Add to Prompt History
+            addToHistory(text);
+
+            // Append Assistant Placeholder
+            const msgId = 'msg-' + Date.now();
+            appendMessage('assistant', '', msgId);
+            const msgElement = document.getElementById(msgId);
+
+            try {
+                const temp = parseFloat(document.getElementById('param-temp').value);
+                const topP = parseFloat(document.getElementById('param-topp').value);
+                const maxTokens = parseInt(document.getElementById('param-tokens').value);
+
+                const payload = {
+                    contents: [{ parts: [{ text: text }] }],
+                    generationConfig: {
+                        temperature: temp,
+                        topP: topP,
+                        maxOutputTokens: maxTokens
+                    }
+                };
+
+                if (isGroundingEnabled) {
+                    payload.tools = [{ "google_search": {} }];
+                }
+
+                const data = await fetchWithRetry(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const candidate = data.candidates?.[0];
+                let responseText = candidate?.content?.parts?.[0]?.text || "No response generated.";
+
+                // Check Grounding Sources
+                if (candidate?.groundingMetadata?.groundingAttributions) {
+                    const sources = candidate.groundingMetadata.groundingAttributions
+                        .map(a => a.web?.uri ? `<a href="${a.web.uri}" target="_blank" class="text-cyan-400 underline ml-1">${a.web.title || 'Source'}</a>` : '')
+                        .filter(Boolean);
+                    if (sources.length > 0) {
+                        responseText += `<br><br><span class="text-xs text-gray-400 font-mono">Sources: ${sources.join(', ')}</span>`;
+                    }
+                }
+
+                msgElement.innerHTML = responseText;
+
+            } catch (err) {
+                msgElement.innerHTML = `<span class="text-red-400">Error generating response: ${err.message}</span>`;
+            }
+        }
+
+        function appendMessage(role, text, id = null) {
+            const container = document.getElementById('chat-messages');
+            const isUser = role === 'user';
+            const div = document.createElement('div');
+            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'} space-x-3`;
+            
+            div.innerHTML = `
+                <div class="flex space-x-3 max-w-3xl ${isUser ? 'flex-row-reverse space-x-reverse' : ''}">
+                    <div class="w-8 h-8 rounded-xl ${isUser ? 'bg-purple-600' : 'bg-cyan-950 border border-cyan-500/40'} flex items-center justify-center shrink-0 text-xs text-white">
+                        <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                    </div>
+                    <div class="p-4 rounded-2xl ${isUser ? 'bg-purple-900/40 border border-purple-500/30 text-gray-100' : 'glass-card border border-gray-800 text-gray-200'} text-sm leading-relaxed" ${id ? `id="${id}"` : ''}>
+                        ${text || '<span class="typing-cursor font-mono text-cyan-400">Generating thought stream...</span>'}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function setPromptText(text) {
+            document.getElementById('chat-input').value = text;
+        }
+
+        // 2. IMAGE GENERATION LOGIC
+        function setAspectRatio(ratio) {
+            selectedAspectRatio = ratio;
+            document.querySelectorAll('.ratio-btn').forEach(btn => {
+                btn.classList.remove('border-cyan-500/50', 'bg-cyan-950/30', 'text-cyan-300');
+                btn.classList.add('border-gray-800', 'bg-gray-900', 'text-gray-400');
+            });
+            event.target.classList.add('border-cyan-500/50', 'bg-cyan-950/30', 'text-cyan-300');
+        }
+
+        function setStylePreset(style) {
+            selectedStylePreset = style;
+        }
+
+        async function enhanceImagePrompt() {
+            const promptInput = document.getElementById('image-prompt');
+            if(!promptInput.value.trim()) return;
+
+            try {
+                const enhancePayload = {
+                    contents: [{ parts: [{ text: `Expand this image prompt into a detailed high-quality artistic prompt for AI text-to-image generation: "${promptInput.value}". Return only the expanded prompt.` }] }]
+                };
+                const data = await fetchWithRetry(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(enhancePayload)
+                });
+                const enhanced = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if(enhanced) promptInput.value = enhanced.trim();
+            } catch(e) {
+                console.error("Prompt enhancement error", e);
+            }
+        }
+
+        async function generateImage() {
+            const promptText = document.getElementById('image-prompt').value.trim();
+            if (!promptText) return;
+
+            const fullPrompt = selectedStylePreset ? `${promptText}, ${selectedStylePreset} style` : promptText;
+
+            const placeholder = document.getElementById('image-placeholder');
+            const loading = document.getElementById('image-loading');
+            const imgResult = document.getElementById('image-result');
+            const actions = document.getElementById('image-actions');
+
+            placeholder.classList.add('hidden');
+            imgResult.classList.add('hidden');
+            actions.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const payload = {
+                    contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+                    generationConfig: {
+                        responseModalities: ['IMAGE'],
+                        imageConfig: { aspectRatio: selectedAspectRatio }
+                    }
+                };
+
+                const data = await fetchWithRetry(GEMINI_IMAGE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                if (part) {
+                    const src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    imgResult.src = src;
+                    document.getElementById('btn-download-img').href = src;
+
+                    imgResult.classList.remove('hidden');
+                    actions.classList.remove('hidden');
+                } else {
+                    placeholder.classList.remove('hidden');
+                    alert("Unable to generate image. Please try another prompt.");
+                }
+            } catch (err) {
+                placeholder.classList.remove('hidden');
+                console.error(err);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+
+        // 3. CODE ASSISTANT LOGIC
+        async function refactorCode(actionInstruction) {
+            const code = document.getElementById('code-input').value;
+            const lang = document.getElementById('code-lang').value;
+            const outputBlock = document.getElementById('code-output');
+
+            if (!code.trim()) return;
+
+            outputBlock.innerText = "// AI is processing code request...";
+
+            const prompt = `Act as an expert software architect. Task: ${actionInstruction} for the following ${lang} code. Provide optimized, production-ready code with concise inline comments:\n\n${code}`;
+
+            try {
+                const data = await fetchWithRetry(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const resText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                outputBlock.innerText = resText || "// No code generated.";
+            } catch (err) {
+                outputBlock.innerText = `// Error: ${err.message}`;
+            }
+        }
+
+        function processCodeAction() {
+            refactorCode("Refactor for performance, clean architecture, and best practices");
+        }
+
+
+        // 4. TTS AUDIO SIMULATION LOGIC
+        async function synthesizeSpeech() {
+            const text = document.getElementById('tts-input').value.trim();
+            const voice = document.getElementById('voice-name').value;
+            const waveform = document.getElementById('waveform');
+            const status = document.getElementById('audio-status');
+
+            if (!text) return;
+
+            waveform.classList.remove('hidden');
+            status.innerText = "Synthesizing voice stream...";
+
+            try {
+                const payload = {
+                    contents: [{ parts: [{ text: text }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } }
+                        }
+                    }
+                };
+
+                const data = await fetchWithRetry(GEMINI_TTS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const part = data?.candidates?.[0]?.content?.parts?.[0];
+                const base64Audio = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (base64Audio && mimeType) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(base64Audio);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    const audio = new Audio(audioUrl);
+                    status.innerText = "Playing AI Audio...";
+                    audio.play();
+
+                    audio.onended = () => {
+                        waveform.classList.add('hidden');
+                        status.innerText = "Playback complete";
+                    };
+                } else {
+                    status.innerText = "Audio synthesis unavailable";
+                    waveform.classList.add('hidden');
+                }
+            } catch (err) {
+                status.innerText = "Audio generation failed";
+                waveform.classList.add('hidden');
+                console.error(err);
+            }
+        }
+
+        // Helper PCM to WAV Audio Conversion
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* RIFF chunk length */
+            view.setUint32(4, 36 + pcm16.length * 2, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (raw PCM) */
+            view.setUint16(20, 1, true);
+            /* channel count */
+            view.setUint16(22, 1, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sampleRate * blockAlign) */
+            view.setUint32(28, sampleRate * 2, true);
+            /* block align (channel count * bytes per sample) */
+            view.setUint16(32, 2, true);
+            /* bits per sample */
+            view.setUint16(34, 16, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, pcm16.length * 2, true);
+
+            // Write PCM samples
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+
+        // UTILITIES
+        function addToHistory(prompt) {
+            const historyList = document.getElementById('history-list');
+            const div = document.createElement('div');
+            div.className = 'p-2 rounded hover:bg-gray-800/60 cursor-pointer truncate';
+            div.innerText = prompt;
+            div.onclick = () => loadHistoryPrompt(prompt);
+            historyList.prepend(div);
+        }
+
+        function loadHistoryPrompt(prompt) {
+            switchTab('chat');
+            document.getElementById('chat-input').value = prompt;
+        }
+
+        function clearHistory() {
+            document.getElementById('history-list').innerHTML = '';
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text);
+        }
+
+        // Enter Key Listener for Chat Input
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+    </script>
+</body>
+</html>
